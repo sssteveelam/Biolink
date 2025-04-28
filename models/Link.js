@@ -30,8 +30,15 @@ const linkSchema = new mongoose.Schema(
       required: true,
       default: 0, // Mặc định là 0
     },
-    // Tự động thêm createdAt và updatedAt
+
+    // Thêm trường mới ---- at 28/04/2025 - 7:33
+    linkType: {
+      type: String,
+      enum: ["link", "youtube"],
+      default : ""
+    },
   },
+  // Tự động thêm createdAt và updatedAt
   { timestamps: true }
 );
 

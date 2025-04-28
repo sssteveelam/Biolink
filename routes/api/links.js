@@ -23,7 +23,12 @@ router.get("/", authMiddleware, async (req, res) => {
 // @desc    Create a new link for the logged-in user
 // @access  Private
 router.post("/", authMiddleware, async (req, res) => {
-  const { title, url } = req.body;
+  const { title, url, linkType } = req.body;
+
+  const allowedTypes = ["link", "youtube"];
+  // Dùng giá trị gửi lên nếu hợp lệ, nếu không thì mặc định là 'link'
+  const typeToSave =
+    linkType && allowedTypes.includes(linkType) ? linkType : "link";
 
   // Validation đơn giản
   if (!title || !url) {
@@ -43,6 +48,7 @@ router.post("/", authMiddleware, async (req, res) => {
       title,
       url,
       order: newOrder,
+      linkType: typeToSave,
     });
 
     const savedLink = await newLink.save();
@@ -145,15 +151,28 @@ router.put("/reorder", authMiddleware, async (req, res) => {
 // @desc    Update an existing link
 // @access  Private
 router.put("/:linkId", authMiddleware, async (req, res) => {
-  const { title, url } = req.body;
+  const { title, url, linkType } = req.body;
   const { linkId } = req.params;
 
+  // Tạo object chứa các field cần update
+  const updateFields = {};
   // Validation
   if (!title || !url) {
     return res.status(400).json({ message: "Title and URL are required" });
   }
   if (!mongoose.Types.ObjectId.isValid(linkId)) {
     return res.status(400).json({ message: "Invalid Link ID format" });
+  }
+
+  if (linkType != undefined) {
+    // Validate linkType nếu cần
+    const allowedTypes = ["link", "youtube"];
+    if (allowedTypes.includes(linkType)) {
+      updateFields.linkType = linkType;
+    } else {
+      // Có thể báo lỗi hoặc bỏ qua việc update type nếu không hợp lệ
+      console.warn(`Invalid linkType '${linkType}' received during update.`);
+    }
   }
 
   try {
