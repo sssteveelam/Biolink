@@ -178,7 +178,7 @@ router.put("/:linkId", authMiddleware, async (req, res) => {
   try {
     const updatedLink = await Link.findOneAndUpdate(
       { _id: linkId, userId: req.user.userId }, // Đảm bảo user chỉ update link của mình
-      { $set: { title, url } },
+      { $set: updateFields },
       { new: true, runValidators: true }
     );
 
