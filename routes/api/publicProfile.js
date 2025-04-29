@@ -39,7 +39,7 @@ router.get("/:username", async (req, res) => {
     // 3. Tìm tất cả link của user đó, sắp xếp theo order
     const links = await Link.find({ userId: user._id })
       .sort({ order: "asc" })
-      .select("title url _id"); // Chỉ lấy title, url, và _id (có thể cần làm key)
+      .select("title url _id linkType"); // Chỉ lấy title, url, và _id (có thể cần làm key)
     console.log(`[PublicProfile] Found links count:`, links.length); // Thêm log
 
     // 4. Kết hợp dữ liệu lại và trả về
