@@ -34,8 +34,8 @@ const linkSchema = new mongoose.Schema(
     // Thêm trường mới ---- at 28/04/2025 - 7:33
     linkType: {
       type: String,
-      enum: ["link", "youtube"],
-      default : ""
+      enum: ["link", "youtube", "spotify"],
+      default: "",
     },
   },
   // Tự động thêm createdAt và updatedAt

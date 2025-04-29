@@ -25,7 +25,7 @@ router.get("/", authMiddleware, async (req, res) => {
 router.post("/", authMiddleware, async (req, res) => {
   const { title, url, linkType } = req.body;
 
-  const allowedTypes = ["link", "youtube"];
+  const allowedTypes = ["link", "youtube", "spotify"];
   // Dùng giá trị gửi lên nếu hợp lệ, nếu không thì mặc định là 'link'
   const typeToSave =
     linkType && allowedTypes.includes(linkType) ? linkType : "link";
@@ -159,14 +159,18 @@ router.put("/:linkId", authMiddleware, async (req, res) => {
   // Validation
   if (!title || !url) {
     return res.status(400).json({ message: "Title and URL are required" });
+  } else {
+    updateFields.title = title;
+    updateFields.url = url;
   }
+
   if (!mongoose.Types.ObjectId.isValid(linkId)) {
     return res.status(400).json({ message: "Invalid Link ID format" });
   }
 
   if (linkType != undefined) {
     // Validate linkType nếu cần
-    const allowedTypes = ["link", "youtube"];
+    const allowedTypes = ["link", "youtube", "spotify"];
     if (allowedTypes.includes(linkType)) {
       updateFields.linkType = linkType;
     } else {
