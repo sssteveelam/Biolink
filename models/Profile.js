@@ -22,8 +22,14 @@ const profileSchema = new mongoose.Schema(
       trim: true,
       default: "#ffffff", // Ví dụ: màu trắng làm mặc định
     },
-    // Tự động thêm createdAt và updatedAt
+    buttonStyle: {
+      type: String,
+      enum: ["rounded-full", "rounded-lg", "rounded-none"],
+      default: "rounded-lg",
+      trim: true,
+    },
   },
+  // Tự động thêm createdAt và updatedAt
   { timestamps: true }
 );
 
