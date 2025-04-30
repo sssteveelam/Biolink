@@ -33,10 +33,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    image: {
-      // URL ảnh đại diện (không bắt buộc)
+    avatarUrl: {
+      // Hoặc dùng tên 'image' nếu bạn muốn tận dụng trường cũ
       type: String,
       trim: true,
+      default: null, // Mặc định là null hoặc chuỗi rỗng
     },
   },
   // Tự động thêm createdAt và updatedAt

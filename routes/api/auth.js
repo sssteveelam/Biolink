@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt"); // Mình sẽ dùng bcrypt để hash password (Mongoose đã tự làm, nhưng để đây có thể cần sau này)
 const User = require("../../models/User"); // Import User model, kiểm tra lại đường dẫn nếu cần
+
 // -----------------------------------------------------------
 
 // login
@@ -142,6 +143,7 @@ router.post("/login", async (req, res) => {
           username: user.username,
           email: user.email,
           name: user.name,
+          avatarUrl: user.avatarUrl,
         },
       });
     });

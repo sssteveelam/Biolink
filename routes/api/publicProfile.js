@@ -17,7 +17,7 @@ router.get("/:username", async (req, res) => {
     // 1. Tìm user dựa vào username
     // Chỉ lấy những trường cần thiết cho trang public, loại bỏ email, password...
     const user = await User.findOne({ username: usernameParam }).select(
-      "username name image createdAt"
+      "username name image createdAt avatarUrl"
     ); // Chỉ lấy các trường này;
 
     console.log(`[PublicProfile] Found user:`, user ? user._id : "Not Found"); // Thêm log
@@ -29,7 +29,7 @@ router.get("/:username", async (req, res) => {
     // 2. Tìm profile của user đó
     const profile = await Profile.findOne({
       userId: user._id,
-    }).select("bio themeColor"); // Chỉ lấy bio và themeColor
+    }).select("bio themeColor "); // Chỉ lấy bio và themeColor
 
     console.log(
       `[PublicProfile] Found profile:`,
