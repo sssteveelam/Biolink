@@ -37,6 +37,26 @@ const linkSchema = new mongoose.Schema(
       enum: ["link", "youtube", "spotify"],
       default: "",
     },
+    socialPlatform: {
+      type: String,
+      trim: true,
+      // (Tùy chọn) Bạn có thể dùng enum nếu muốn giới hạn chặt các nền tảng
+      enum: [
+        null,
+        "facebook",
+        "instagram",
+        "twitter",
+        "linkedin",
+        "github",
+        "tiktok",
+        "youtube",
+        "spotify",
+        "email",
+        "website",
+        "other",
+      ],
+      default: null, // Mặc định không phải là link MXH
+    },
   },
   // Tự động thêm createdAt và updatedAt
   { timestamps: true }

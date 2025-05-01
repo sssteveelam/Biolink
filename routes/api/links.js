@@ -23,7 +23,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // @desc    Create a new link for the logged-in user
 // @access  Private
 router.post("/", authMiddleware, async (req, res) => {
-  const { title, url, linkType } = req.body;
+  const { title, url, linkType, socialPlatform } = req.body;
 
   const allowedTypes = ["link", "youtube", "spotify"];
   // Dùng giá trị gửi lên nếu hợp lệ, nếu không thì mặc định là 'link'
@@ -49,6 +49,7 @@ router.post("/", authMiddleware, async (req, res) => {
       url,
       order: newOrder,
       linkType: typeToSave,
+      socialPlatform: socialPlatform || null, // <== Thêm vào đây, đảm bảo là null nếu không có
     });
 
     const savedLink = await newLink.save();
@@ -151,7 +152,7 @@ router.put("/reorder", authMiddleware, async (req, res) => {
 // @desc    Update an existing link
 // @access  Private
 router.put("/:linkId", authMiddleware, async (req, res) => {
-  const { title, url, linkType } = req.body;
+  const { title, url, linkType, socialPlatform } = req.body;
   const { linkId } = req.params;
 
   // Tạo object chứa các field cần update
@@ -163,6 +164,11 @@ router.put("/:linkId", authMiddleware, async (req, res) => {
     updateFields.title = title;
     updateFields.url = url;
   }
+
+  // --- THÊM LOGIC CHO socialPlatform ---
+  // Luôn cập nhật socialPlatform, nếu không gửi lên thì đặt là null
+  updateFields.socialPlatform = socialPlatform || null;
+  // ---------------------------------
 
   if (!mongoose.Types.ObjectId.isValid(linkId)) {
     return res.status(400).json({ message: "Invalid Link ID format" });

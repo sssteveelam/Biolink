@@ -78,6 +78,7 @@ app.use("/api/profiles", publicProfileRoutes);
 app.use("/api/user", userRoutes);
 
 // --- Start Server ---
-app.listen(PORT, () => {
-  console.log(`Backend server is listening on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Backend server is listening on http://localhost:${PORT}`);
+// });
+module.exports = app;
