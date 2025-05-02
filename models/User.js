@@ -39,6 +39,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: null, // Mặc định là null hoặc chuỗi rỗng
     },
+    passwordResetToken: {
+      type: String,
+      default: null, // Mặc định không có token
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: null, // Mặc định không có thời gian hết hạn
+    },
   },
   // Tự động thêm createdAt và updatedAt
   { timestamps: true }
@@ -60,6 +68,27 @@ userSchema.pre("save", async function (next) {
     next(error); // Chuyển lỗi cho Mongoose xử lý
   }
 });
+
+// Thêm một phương thức để tạo token reset dễ dàng
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = require("crypto").randomBytes(32).toString("hex"); // Tạo token ngẫu nhiên
+
+  // Hash token trước khi lưu vào DB (quan trọng!)
+  this.passwordResetToken = require("crypto")
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // Đặt thời gian hết hạn (ví dụ: 10 phút)
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  console.log({
+    resetToken_raw: resetToken,
+    resetToken_hashed: this.passwordResetToken,
+  }); // Log để debug
+
+  return resetToken;
+};
 
 /*
 Lý do: next là một hàm callback mà Mongoose cung cấp trong middleware. 

@@ -11,7 +11,7 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const links = await Link.find({ userId: req.user.userId }).sort({
       order: "asc",
-    }); // Lấy link của user và sắp xếp theo 'order' tăng dần
+    });
     res.status(200).json(links);
   } catch (error) {
     console.error("Error fetching links:", error);
@@ -239,6 +239,41 @@ router.delete("/:linkId", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error deleting link:", error);
     res.status(500).json({ message: "Server error deleting link" });
+  }
+});
+// Thêm vào cuối file routes/api/links.js, trước module.exports
+
+// @route   POST api/links/:linkId/click
+// @desc    Ghi nhận một lượt click cho link
+// @access  Public
+router.post("/:linkId/click", async (req, res) => {
+  try {
+    const linkId = req.params.linkId;
+
+    // Kiểm tra ID có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(linkId)) {
+      // Không cần trả lỗi chi tiết ra ngoài, chỉ cần log lại nếu muốn
+      console.warn(`Invalid linkId format for click tracking: ${linkId}`);
+      return res.status(400).send(); // Trả về lỗi đơn giản
+    }
+
+    // Tìm link và tăng clickCount lên 1 một cách an toàn (atomic increment)
+    // Dùng $inc để tăng giá trị field number lên 1 đơn vị
+    const updatedLink = await Link.findByIdAndUpdate(linkId, {
+      $inc: { clickCount: 1 },
+    });
+
+    if (!updatedLink) {
+      console.warn(`Link not found for click tracking: ${linkId}`);
+      return res.status(404).send();
+    }
+
+    // Ghi nhận thành công, trả về 204 No Content (không cần body) hoặc 200 OK
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error tracking link click:", error);
+    // Trả về lỗi server chung chung
+    res.status(500).send();
   }
 });
 

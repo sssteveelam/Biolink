@@ -64,7 +64,6 @@ app.get("/api/ping", (req, res) => {
 // Việc đặt app.use('/api/auth', authRoutes) có nghĩa là route /register trong
 // file auth.js sẽ tương ứng với đường dẫn đầy đủ là POST /api/auth/register
 app.use("/api/auth", authLimiter, authRoutes);
-
 //  @@@@
 /// --- /api/user/profile ---
 //  sử dụng các routes trong file profile.js cho đường dẫn bắt đầu bằng /api/user/profile

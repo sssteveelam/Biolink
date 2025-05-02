@@ -57,6 +57,11 @@ const linkSchema = new mongoose.Schema(
       ],
       default: null, // Mặc định không phải là link MXH
     },
+    clickCount: {
+      type: Number,
+      required: true,
+      default: 0, // Khởi tạo số lượt click bằng 0
+    },
   },
   // Tự động thêm createdAt và updatedAt
   { timestamps: true }

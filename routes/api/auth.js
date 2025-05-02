@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt"); // Mình sẽ dùng bcrypt để hash password (Mongoose đã tự làm, nhưng để đây có thể cần sau này)
 const User = require("../../models/User"); // Import User model, kiểm tra lại đường dẫn nếu cần
+const crypto = require("crypto"); // Cần cho việc hash/compare token
+const sendEmail = require("../../utils/email");
 
 // -----------------------------------------------------------
 
@@ -178,6 +180,188 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 // -----------------------------------------------------------
+
+// @route   POST api/auth/forgot-password
+// @desc    Gửi yêu cầu đặt lại mật khẩu
+// @access  Public
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Vui lòng cung cấp email." });
+  }
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // !! Quan trọng: Không báo lỗi nếu không tìm thấy user vì lý do bảo mật
+    // Chỉ gửi email nếu user tồn tại
+    if (user) {
+      // 1. Tạo token reset (phương thức này trả về token gốc, và hash + lưu vào user)
+      const resetToken = user.createPasswordResetToken(); // Gọi phương thức đã tạo trong model
+      await user.save({ validateBeforeSave: false }); // Lưu lại user với token và expiry (tắt validate tạm thời vì chỉ cập nhật token)
+
+      // 2. Tạo URL reset mật khẩu cho frontend
+      // Nhớ thay đổi URL gốc nếu deploy lên production
+      const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+      // 3. Tạo nội dung email dạng HTML với INLINE STYLES (Mô phỏng Tailwind)
+      const htmlMessage = `<!DOCTYPE html>
+            <html lang="vi">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Đặt lại mật khẩu Biolink</title>
+              <style>
+                /* Chỉ dùng style rất cơ bản ở đây, chủ yếu là cho body */
+                body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+                table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } /* Cho Outlook */
+                img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+              </style>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #f3f4f6;"> <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f3f4f6;">
+                <tr>
+                  <td align="center" style="padding: 20px 10px;"> <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden;">
+                      <tr>
+                        <td style="padding: 40px 30px; font-family: Arial, sans-serif;"> <h2 style="color: #1f2937; font-size: 24px; margin-top: 0; margin-bottom: 16px; font-weight: 600;"> Yêu cầu Đặt lại Mật khẩu
+                          </h2>
+                          <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-top: 0; margin-bottom: 24px;"> Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản Biolink liên kết với địa chỉ email này.
+                          </p>
+                          <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-top: 0; margin-bottom: 24px;">
+                            Vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới:
+                          </p>
+                          <div style="text-align: center; margin-bottom: 32px;"> <a href="${resetURL}" target="_blank" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px; border: 0; cursor: pointer;"> Đặt lại Mật khẩu
+                            </a>
+                          </div>
+                          <p style="color: #4b5563; font-size: 14px; line-height: 1.5; margin-top: 0; margin-bottom: 12px;"> Nếu nút trên không hoạt động, bạn có thể sao chép và dán URL sau vào trình duyệt:
+                          </p>
+                          <p style="margin-bottom: 24px; font-size: 12px; word-break: break-all;"> <a href="${resetURL}" target="_blank" style="color: #4f46e5; text-decoration: underline;">${resetURL}</a> </p>
+                          <p style="color: #4b5563; font-size: 14px; line-height: 1.5; margin-top: 0; margin-bottom: 10px;">
+                            <i>Liên kết này chỉ có hiệu lực trong <strong>10 phút</strong>.</i>
+                          </p>
+                          <p style="color: #4b5563; font-size: 14px; line-height: 1.5; margin-top: 0; margin-bottom: 0;">
+                            Nếu bạn không thực hiện yêu cầu này, bạn có thể yên tâm bỏ qua email này.
+                          </p>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding: 20px 30px; text-align: center; border-top: 1px solid #e5e7eb;"> <p style="color: #6b7280; font-size: 12px; margin: 0;"> &copy; ${new Date().getFullYear()} ${
+        process.env.EMAIL_FROM_NAME || "Biolink App"
+      }. Bảo lưu mọi quyền.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+      `;
+
+      // 3.1 (Quan trọng) Tạo phiên bản Text đơn giản làm fallback
+      const textMessage = `
+         Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản Biolink của bạn.
+         Vui lòng truy cập đường link sau để hoàn tất quá trình (link hết hạn sau 10 phút):
+         \n\n
+         ${resetURL}
+         \n\n
+         Nếu bạn không yêu cầu việc này, vui lòng bỏ qua email này.
+         \n
+         Trân trọng, Đội ngũ Biolink.
+       `;
+
+      try {
+        // 4. Gửi email (dùng hàm sendEmail sẽ tạo ở bước sau)
+        await sendEmail({
+          email: user.email,
+          subject: "Yêu cầu đặt lại mật khẩu Biolink (Hiệu lực 10 phút)",
+          text: textMessage, // <-- Truyền nội dung text
+          html: htmlMessage, // <-- Truyền nội dung HTML
+        });
+        console.log(`Password reset email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error("Error sending password reset email:", emailError);
+        // Nếu gửi email lỗi, cần xóa token đã tạo khỏi DB để user có thể thử lại
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+        // Không nên báo lỗi chi tiết cho người dùng ở đây
+        // return res.status(500).json({ message: 'Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại.' });
+      }
+    }
+    // Luôn trả về thông báo thành công chung chung để tránh lộ thông tin email nào tồn tại/không tồn tại
+    res.status(200).json({
+      message: "Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.",
+    });
+  } catch (error) {
+    console.error("Forgot Password Server Error:", error);
+    // Nếu có lỗi khác xảy ra trong quá trình tìm user hoặc save token
+    // Không nên báo lỗi chi tiết cho người dùng
+    res.status(200).json({
+      message: "Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.",
+    }); // Vẫn trả về thông báo chung
+  }
+});
+
+// @route   POST api/auth/reset-password/:token
+// @desc    Đặt lại mật khẩu bằng token
+// @access  Public
+router.post("/reset-password/:token", async (req, res) => {
+  const { password } = req.body;
+  const resetToken = req.params.token;
+
+  if (!password || password.length < 6) {
+    return res
+      .status(400)
+      .json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự." });
+  }
+
+  try {
+    // 1. Hash token nhận được từ URL để so sánh với token trong DB
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    // 2. Tìm user bằng hashed token VÀ token chưa hết hạn (expires > Date.now())
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }, // Kiểm tra thời gian hết hạn
+    });
+
+    // 3. Nếu không tìm thấy user hoặc token hết hạn
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Token không hợp lệ hoặc đã hết hạn." });
+    }
+
+    // 4. Nếu tìm thấy user và token hợp lệ:
+    //   a. Cập nhật mật khẩu mới (pre-save hook sẽ tự hash)
+    user.password = password;
+    //   b. Xóa thông tin token reset khỏi DB
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    //   c. Lưu lại user
+    await user.save(); // Gọi save() để trigger pre-save hook hash password
+
+    // 5. (Tùy chọn) Có thể tạo một JWT mới và gửi về để user tự động đăng nhập luôn
+    //    hoặc chỉ cần báo thành công và yêu cầu user đăng nhập lại.
+    //    Ở đây mình chỉ báo thành công:
+    res.status(200).json({ message: "Đặt lại mật khẩu thành công!" });
+  } catch (error) {
+    console.error("Reset Password Server Error:", error);
+    if (error.name === "ValidationError") {
+      // Nếu lỗi validate mật khẩu mới
+      return res
+        .status(400)
+        .json({ message: "Validation Error", errors: error.errors });
+    }
+    res.status(500).json({ message: "Lỗi server khi đặt lại mật khẩu." });
+  }
+});
+
 /*
 hỏi về payload có ý nghĩa như thế nào ?
 
