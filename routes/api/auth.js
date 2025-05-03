@@ -202,7 +202,9 @@ router.post("/forgot-password", async (req, res) => {
 
       // 2. Tạo URL reset mật khẩu cho frontend
       // Nhớ thay đổi URL gốc nếu deploy lên production
-      const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+      const resetURL = `${
+        process.env.FRONTEND_URL_DEPLOY || "http://localhost:5173"
+      }/reset-password/${resetToken}`;
 
       // 3. Tạo nội dung email dạng HTML với INLINE STYLES (Mô phỏng Tailwind)
       const htmlMessage = `<!DOCTYPE html>
