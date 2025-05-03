@@ -36,7 +36,7 @@ router.get("/me", authMiddleware, async (req, res) => {
 // @access  Private
 router.put("/me", authMiddleware, async (req, res) => {
   // Lấy thông tin cần cạp nhật từ request body
-  const { bio, themeColor, buttonStyle } = req.body;
+  const { bio, themeColor, buttonStyle, selectedThemeId } = req.body;
 
   // Tạo object chứa các field cần cập nhật.
   const profileFields = {};
@@ -45,14 +45,15 @@ router.put("/me", authMiddleware, async (req, res) => {
   if (themeColor !== undefined) profileFields.themeColor = themeColor;
 
   // --- THÊM LOGIC CHO buttonStyle ---
-  // Kiểm tra xem buttonStyle có được gửi lên và có phải là một trong các giá trị cho phép không
   const allowedButtonStyles = ["rounded-full", "rounded-lg", "rounded-none"];
   if (buttonStyle !== undefined && allowedButtonStyles.includes(buttonStyle)) {
     profileFields.buttonStyle = buttonStyle;
   } else if (buttonStyle !== undefined) {
-    // (Tùy chọn) Nếu gửi lên giá trị không hợp lệ, có thể báo lỗi hoặc bỏ qua
     console.warn(`Invalid buttonStyle received: ${buttonStyle}. Ignoring.`);
-    // Hoặc return res.status(400).json({ message: 'Kiểu nút không hợp lệ.' });
+  }
+
+  if (selectedThemeId !== undefined) {
+    profileFields.selectedThemeId = selectedThemeId;
   }
 
   try {

@@ -29,7 +29,7 @@ router.get("/:username", async (req, res) => {
     // 2. Tìm profile của user đó
     const profile = await Profile.findOne({
       userId: user._id,
-    }).select("bio themeColor  buttonStyle"); // Chỉ lấy bio và themeColor
+    }).select("bio themeColor  buttonStyle selectedThemeId"); // Chỉ lấy bio và themeColor
 
     console.log(
       `[PublicProfile] Found profile:`,
@@ -39,7 +39,7 @@ router.get("/:username", async (req, res) => {
     // 3. Tìm tất cả link của user đó, sắp xếp theo order
     const links = await Link.find({ userId: user._id })
       .sort({ order: "asc" })
-      .select("title url _id linkType socialPlatform"); // Chỉ lấy title, url, và _id (có thể cần làm key)
+      .select("title url _id linkType socialPlatform "); // Chỉ lấy title, url, và _id (có thể cần làm key)
     console.log(`[PublicProfile] Found links count:`, links.length); // Thêm log
 
     // 4. Kết hợp dữ liệu lại và trả về

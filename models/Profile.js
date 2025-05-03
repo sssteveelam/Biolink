@@ -28,6 +28,11 @@ const profileSchema = new mongoose.Schema(
       default: "rounded-lg",
       trim: true,
     },
+    selectedThemeId: {
+      type: String, // Lưu ID của theme (vd: 'gradient-sunset', 'image-forest', 'custom-color')
+      trim: true,
+      default: null, // Mặc định là chưa chọn theme nào (sẽ dùng themeColor)
+    },
   },
   // Tự động thêm createdAt và updatedAt
   { timestamps: true }
