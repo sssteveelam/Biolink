@@ -36,7 +36,7 @@ router.get("/me", authMiddleware, async (req, res) => {
 // @access  Private
 router.put("/me", authMiddleware, async (req, res) => {
   // Lấy thông tin cần cạp nhật từ request body
-  const { bio, themeColor, buttonStyle, selectedThemeId } = req.body;
+  const { bio, themeColor, buttonStyle, selectedThemeId, textColor } = req.body;
 
   // Tạo object chứa các field cần cập nhật.
   const profileFields = {};
@@ -54,6 +54,11 @@ router.put("/me", authMiddleware, async (req, res) => {
 
   if (selectedThemeId !== undefined) {
     profileFields.selectedThemeId = selectedThemeId;
+  }
+
+  // Validation textColor
+  if (textColor !== undefined) {
+    profileFields.textColor = textColor === "" ? null : textColor;
   }
 
   try {

@@ -29,7 +29,7 @@ router.get("/:username", async (req, res) => {
     // 2. Tìm profile của user đó
     const profile = await Profile.findOne({
       userId: user._id,
-    }).select("bio themeColor  buttonStyle selectedThemeId"); // Chỉ lấy bio và themeColor
+    }).select("bio themeColor  buttonStyle selectedThemeId textColor "); // Chỉ lấy bio và themeColor
 
     console.log(
       `[PublicProfile] Found profile:`,

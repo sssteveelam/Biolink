@@ -33,6 +33,11 @@ const profileSchema = new mongoose.Schema(
       trim: true,
       default: null, // Mặc định là chưa chọn theme nào (sẽ dùng themeColor)
     },
+    textColor: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   // Tự động thêm createdAt và updatedAt
   { timestamps: true }
