@@ -248,18 +248,8 @@ Hướng dẫn cài đặt và chạy backend trên máy local.
 * **Public Profile:**
     * `GET /api/profiles/:username`: (Public) Lấy thông tin công khai (user, profile, links) của một username.
 
-## Cấu trúc thư mục (Ví dụ)
+## Cấu trúc thư mục :
+![image](https://github.com/user-attachments/assets/a485ff76-a729-4f2c-a988-0919afdaca08)
 
-Biolink-backend/
-├── tests/             # Chứa các file test
-├── middleware/        # Chứa các middleware (vd: authMiddleware.js)
-├── models/            # Định nghĩa Mongoose Schemas (User.js, Profile.js, Link.js)
-├── routes/            # Định nghĩa các API routes
-│   └── api/           # Routes cho API (auth.js, profile.js, links.js, ...)
-├── utils/             # Các hàm tiện ích (vd: email.js)
-├── .env               # File biến môi trường (QUAN TRỌNG: Không commit!)
-├── .gitignore         # Các file/folder bỏ qua khi commit
-├── index.js           # Điểm khởi chạy server (chỉ gọi app từ server.js)
-├── server.js          # Khởi tạo Express app, middleware, routes, kết nối DB
-├── package.json       # Thông tin dự án và dependencies
-└── package-lock.json  # Khóa phiên bản dependencies
+
+
